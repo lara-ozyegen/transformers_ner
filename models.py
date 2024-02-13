@@ -212,4 +212,4 @@ class BertCRF(BertPreTrainedModel):
             output = (tags,) + outputs[2:]
             return ((loss,) + output) if loss is not None else output
 
-        return loss, tags
+        return loss, logits

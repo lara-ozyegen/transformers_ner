@@ -1,7 +1,7 @@
 from transformers import BertTokenizerFast
-from models import BertCRF
+from models import BertLstmCRF
 
-model = BertCRF.from_pretrained('./results/checkpoint-xxxx', num_labels=9)
+model = BertLstmCRF.from_pretrained('./results/checkpoint-5268', num_labels=9)
 tokenizer = BertTokenizerFast.from_pretrained('bert-base-cased')
 id2label = ["O", "B-PER", "I-PER", "B-ORG", "I-ORG", "B-LOC", "I-LOC", "B-MISC", "I-MISC"]
 

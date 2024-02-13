@@ -1,3 +1,6 @@
 .idea
 result
 logs
+models/
+data/
+.vscode/
