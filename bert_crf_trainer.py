@@ -1,11 +1,12 @@
 from datasets import load_dataset
 from sklearn.metrics import classification_report, f1_score, confusion_matrix, ConfusionMatrixDisplay
-from transformers import BertConfig, AutoTokenizer, BertTokenizerFast, Trainer, TrainingArguments, DataCollatorForTokenClassification
+from transformers import DebertaConfig, DebertaTokenizerFast, BertConfig, AutoTokenizer, BertTokenizerFast, Trainer, TrainingArguments, DataCollatorForTokenClassification
 from transformers.trainer_utils import IntervalStrategy
 import numpy as np
 import json
 import matplotlib.pyplot as plt
 from models import BertCRF
+from deberta_model import DebertaCRF
 import pandas as pd
 import os
 
@@ -20,10 +21,13 @@ import os
 
 # train_dataset, test_dataset = load_dataset('conll2003', split=['train', 'test'])
 
-model_checkpoint = 'emilyalsentzer/Bio_ClinicalBERT'
-model_name = 'bioclinicalbert-ft'
+model_checkpoint = 'microsoft/deberta-base'
+model_name = 'deberta-ft'
 
-tokenizer = AutoTokenizer.from_pretrained(model_checkpoint)
+if model_checkpoint == 'microsoft/deberta-base':
+  tokenizer = DebertaTokenizerFast.from_pretrained(model_checkpoint, add_prefix_space=True)
+else:
+  tokenizer = AutoTokenizer.from_pretrained(model_checkpoint)
 # data_collator = DataCollatorForTokenClassification(tokenizer=tokenizer)
 
 id2label = {0: 'O', 1: 'I-Treatment', 2: 'I-Test', 3: 'I-Problem', 4: 'I-Background', 5: 'I-Other'}
@@ -252,10 +256,15 @@ for i in range(1):
   test_dataset.set_format('torch', columns=['input_ids', 'token_type_ids', 'attention_mask', 'label_ids'])
 
   num_labels=6
-  config = BertConfig.from_pretrained(model_checkpoint)
-  config.num_labels = num_labels
-  model = BertCRF.from_pretrained(model_checkpoint, config=config, ignore_mismatched_sizes=True)
   # model = BertCRF.from_pretrained(model_checkpoint, num_labels=6, ignore_mismatched_sizes=True)
+  if model_checkpoint == 'microsoft/deberta-base':
+    config = DebertaConfig.from_pretrained(model_checkpoint)
+    config.num_labels = num_labels
+    model = DebertaCRF.from_pretrained(model_checkpoint, config=config, ignore_mismatched_sizes=True)
+  else:
+    config = BertConfig.from_pretrained(model_checkpoint)
+    config.num_labels = num_labels
+    model = BertCRF.from_pretrained(model_checkpoint, config=config, ignore_mismatched_sizes=True)
 
   monitor = TrainingMonitor()
   training_args = TrainingArguments(
