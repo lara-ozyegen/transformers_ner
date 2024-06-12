@@ -261,7 +261,7 @@ for i in range(1):
   training_args = TrainingArguments(
       output_dir=f'models/bert-crf-ner/fold{i}',
       overwrite_output_dir=True,
-      num_train_epochs=1,
+      num_train_epochs=5,
       per_device_train_batch_size=4,
       per_device_eval_batch_size=4,
       evaluation_strategy="epoch",
