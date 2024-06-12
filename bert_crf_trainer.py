@@ -31,7 +31,7 @@ def tokenize(batch):
         'input_ids': [],
         'token_type_ids': [],
     }
-    max_length = tokenizer.max_model_input_sizes['bert-base-cased']
+    max_length = tokenizer.model_max_length
 
     for tokens, label in zip(batch['tokens'], batch['label_ids']):
         tokenids = tokenizer(tokens, add_special_tokens=False)
@@ -140,9 +140,9 @@ class TrainingMonitor:
               json.dump(binary_classification_report, f, indent=4)
 
       return {
-        "precision": unreport['macro avg']['precision'],
-        "recall": unreport['macro avg']['recall'],
-        "f1": unreport['macro avg']['f1-score'],
+        "precision": unreport['macro_wo_O']['precision'],
+        "recall": unreport['macro_wo_O']['recall'],
+        "f1": unreport['macro_wo_O']['f1-score'],
         "accuracy": unreport['accuracy']
         }
     return compute_metrics
