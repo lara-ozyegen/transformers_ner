@@ -1,6 +1,6 @@
 from datasets import load_dataset
 from sklearn.metrics import classification_report, f1_score, confusion_matrix, ConfusionMatrixDisplay
-from transformers import BertTokenizerFast, Trainer, TrainingArguments, DataCollatorForTokenClassification
+from transformers import AutoTokenizer, BertTokenizerFast, Trainer, TrainingArguments, DataCollatorForTokenClassification
 from transformers.trainer_utils import IntervalStrategy
 import numpy as np
 import json
@@ -18,9 +18,9 @@ import pandas as pd
 
 # train_dataset, test_dataset = load_dataset('conll2003', split=['train', 'test'])
 
+model_checkpoint = 'samrawal/bert-base-uncased_clinical-ner'
 
-
-tokenizer = BertTokenizerFast.from_pretrained('bert-base-uncased')
+tokenizer = AutoTokenizer.from_pretrained(model_checkpoint)
 # data_collator = DataCollatorForTokenClassification(tokenizer=tokenizer)
 
 id2label = {0: 'O', 1: 'I-Treatment', 2: 'I-Test', 3: 'I-Problem', 4: 'I-Background', 5: 'I-Other'}
@@ -168,7 +168,7 @@ for i in range(5):
   test_dataset.set_format('torch', columns=['input_ids', 'token_type_ids', 'attention_mask', 'label_ids'])
 
   
-  model = BertCRF.from_pretrained('bert-base-uncased', num_labels=6)
+  model = BertCRF.from_pretrained(model_checkpoint, num_labels=6, ignore_mismatched_sizes=True)
 
   monitor = TrainingMonitor()
   training_args = TrainingArguments(
