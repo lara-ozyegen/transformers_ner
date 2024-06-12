@@ -20,8 +20,8 @@ import os
 
 # train_dataset, test_dataset = load_dataset('conll2003', split=['train', 'test'])
 
-model_checkpoint = 'samrawal/bert-base-uncased_clinical-ner'
-model_name = 'bertclinical-ft'
+model_checkpoint = 'emilyalsentzer/Bio_ClinicalBERT'
+model_name = 'bioclinicalbert-ft'
 
 tokenizer = AutoTokenizer.from_pretrained(model_checkpoint)
 # data_collator = DataCollatorForTokenClassification(tokenizer=tokenizer)
@@ -167,10 +167,10 @@ class TrainingMonitor:
                 
 
             return {
-                "precision": unreport['macro avg']['precision'],
-                "recall": unreport['macro avg']['recall'],
-                "f1": unreport['macro avg']['f1-score'],
-                "accuracy": unreport['accuracy'],
+                "precision": unreport['macro_wo_O']['precision'],
+                "recall": unreport['macro_wo_O']['recall'],
+                "f1": unreport['macro_wo_O']['f1-score'],
+                "accuracy": unreport['macro_wo_O'],
             }
         return compute_metrics
 
