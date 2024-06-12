@@ -64,10 +64,3 @@ class DebertaCRF(DebertaPreTrainedModel):
 
         return loss, logits
 
-# Example usage
-model_checkpoint = 'microsoft/deberta-base'
-num_labels = 6  # Set this to the number of labels in your dataset
-
-config = DebertaConfig.from_pretrained(model_checkpoint)
-config.num_labels = num_labels
-model = DebertaCRF.from_pretrained(model_checkpoint, config=config, ignore_mismatched_sizes=True)
