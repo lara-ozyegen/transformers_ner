@@ -113,6 +113,7 @@ class TrainingMonitor:
                 "accuracy": unreport['accuracy'],
             }
         return compute_metrics
+
 def tokenize(batch):
   result = {
       'label_ids': [],
@@ -159,10 +160,10 @@ def tokenize(batch):
 
 # train_dataset, test_dataset = load_dataset('conll2003', split=['train', 'test'])
 
-model_names = ['scibert-ft', 'bluebert-ft', 'bertclinical-ft', 'bioclinicalbert-ft', 'deberta-ft']
-model_checkpoints = ['allenai/scibert_scivocab_uncased', 'bionlp/bluebert_pubmed_uncased_L-24_H-1024_A-16', 'samrawal/bert-base-uncased_clinical-ner' ,'emilyalsentzer/Bio_ClinicalBERT', 'microsoft/deberta-base']
-dataset_name = 'phee_combined'
-eval_dataset_name = 'doc-patient'
+model_names = ['bluebert-ft'] #['scibert-ft', 'bluebert-ft', 'bertclinical-ft', 'bioclinicalbert-ft', 'deberta-ft']
+model_checkpoints = ['bionlp/bluebert_pubmed_uncased_L-24_H-1024_A-16'] #['allenai/scibert_scivocab_uncased', 'bionlp/bluebert_pubmed_uncased_L-24_H-1024_A-16', 'samrawal/bert-base-uncased_clinical-ner' ,'emilyalsentzer/Bio_ClinicalBERT', 'microsoft/deberta-base']
+dataset_name = 'phee'
+eval_dataset_name = 'phee'
 for model_name, model_checkpoint in zip(model_names, model_checkpoints):
   if model_checkpoint == 'microsoft/deberta-base':
     tokenizer = DebertaTokenizerFast.from_pretrained(model_checkpoint, add_prefix_space=True)
@@ -172,72 +173,10 @@ for model_name, model_checkpoint in zip(model_names, model_checkpoints):
 
   id2label = {0: 'O', 1: 'I-Treatment', 2: 'I-Test', 3: 'I-Problem', 4: 'I-Background', 5: 'I-Other'}
 
-  
-
-  # train_dataset = train_dataset.remove_columns(['id', 'pos_tags', 'chunk_tags'])
-
-
-  
-  # class TrainingMonitor:
-  #   def __init__(self):
-  #       self.best_f1 = 0
-  #       self.best_confusion_matrix = None
-        
-  #   def compute_metrics_factory(self, word_ids, fold_no, dataset_name, model_checkpoint):
-  #     def compute_metrics(pred):
-  #       logits, labels = pred
-  #       predictions = np.argmax(logits, axis=-1)
-
-  #       true_labels = [[id2label[l] for l in label[1:-1]] for label in labels]
-  #       true_predictions = [
-  #           [id2label[p] for (p, l) in zip(prediction[1:-1], label[1:-1])]
-  #           for prediction, label in zip(predictions, labels)
-  #       ]
-  #       untokenized_true_labels, untokenized_predictions = untokenize_labels_predictions(word_ids, true_labels, true_predictions)
-        
-  #       unflat_true = [label for seq in untokenized_true_labels for label in seq]
-  #       unflat_pred = [label for seq in untokenized_predictions for label in seq]
-  #       unreport = classification_report(y_pred=unflat_pred, y_true=unflat_true, output_dict=True)
-  #       unreport['macro_wo_O'] = {'precision': (unreport['I-Background']['precision'] + unreport['I-Other']['precision'] + unreport['I-Problem']['precision'] + unreport['I-Test']['precision'] + unreport['I-Treatment']['precision']) / 5,
-  #       'recall': (unreport['I-Background']['recall'] + unreport['I-Other']['recall'] + unreport['I-Problem']['recall'] + unreport['I-Test']['recall'] + unreport['I-Treatment']['recall']) / 5,
-  #       'f1-score': (unreport['I-Background']['f1-score'] + unreport['I-Other']['f1-score'] + unreport['I-Problem']['f1-score'] + unreport['I-Test']['f1-score'] + unreport['I-Treatment']['f1-score']) / 5,
-  #       'support': (unreport['I-Background']['support'] + unreport['I-Other']['support'] + unreport['I-Problem']['support'] + unreport['I-Test']['support'] + unreport['I-Treatment']['support'])}
-        
-  #       un_report_df = pd.DataFrame(unreport).round(3).T
-
-  #       new_f1_score = unreport['macro_wo_O']['f1-score']
-  #       if self.best_f1 < new_f1_score:
-  #           self.best_f1 = new_f1_score
-  #           cm = confusion_matrix(y_pred=unflat_pred, y_true=unflat_true)
-  #           disp = ConfusionMatrixDisplay(cm, display_labels=np.array(['I-Background','I-Other', 'I-Problem', 'I-Test', 'I-Treatment', 'O']))
-  #           fig, ax = plt.subplots(figsize=(8, 8))
-  #           disp.plot(ax=ax)
-
-            
-  #           binary_predictions = ['0' if label == 'O' else '1' for label in unflat_pred]
-  #           binary_labels = ['0' if label == 'O' else '1' for label in unflat_true]
-
-  #           # Generate a classification report
-  #           binary_classification_report = classification_report(y_true=binary_labels, y_pred=binary_predictions, target_names=['O', 'I'], digits=3, output_dict=True)
-            
-  #           # Save the figure to an image file
-  #           plt.savefig(f'analysis/{dataset_name}/{model_checkpoint}/graphs/fold{fold_no}/confusion_matrix.png')
-  #           with open(f"analysis/{dataset_name}/{model_checkpoint}/reports/fold{fold_no}/multiclass_classification_report.json", "w") as f:
-  #               json.dump(un_report_df.to_dict(), f, indent=4)
-  #           with open(f"analysis/{dataset_name}/{model_checkpoint}/reports/fold{fold_no}/binary_classification_report.json", "w") as f:
-  #               json.dump(binary_classification_report, f, indent=4)
-
-  #       return {
-  #         "precision": unreport['macro_wo_O']['precision'],
-  #         "recall": unreport['macro_wo_O']['recall'],
-  #         "f1": unreport['macro_wo_O']['f1-score'],
-  #         "accuracy": unreport['accuracy']
-  #         }
-  #     return compute_metrics
 
   for i in range(1):
 
-    dataset = load_dataset('json', field='data', data_files={'train': f'data/processed/{dataset_name}/train.json', 'test': f'data/processed/{eval_dataset_name}/test.json'})
+    dataset = load_dataset('json', field='data', data_files={'train': f'data/processed/{dataset_name}/fold{i}/train.json', 'test': f'data/processed/{eval_dataset_name}/fold{i}/test.json'})
     train_dataset = dataset['train']
     test_dataset = dataset['test']
 
