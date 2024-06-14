@@ -160,76 +160,77 @@ def tokenize(batch):
 
 # train_dataset, test_dataset = load_dataset('conll2003', split=['train', 'test'])
 
-model_names = ['bluebert-ft'] #['scibert-ft', 'bluebert-ft', 'bertclinical-ft', 'bioclinicalbert-ft', 'deberta-ft']
-model_checkpoints = ['bionlp/bluebert_pubmed_uncased_L-24_H-1024_A-16'] #['allenai/scibert_scivocab_uncased', 'bionlp/bluebert_pubmed_uncased_L-24_H-1024_A-16', 'samrawal/bert-base-uncased_clinical-ner' ,'emilyalsentzer/Bio_ClinicalBERT', 'microsoft/deberta-base']
+model_names = ['scibert-ft', 'bertclinical-ft', 'bioclinicalbert-ft', 'deberta-ft']
+model_checkpoints = ['allenai/scibert_scivocab_uncased', 'samrawal/bert-base-uncased_clinical-ner' ,'emilyalsentzer/Bio_ClinicalBERT', 'microsoft/deberta-base']
 dataset_name = 'phee'
-eval_dataset_name = 'phee'
+eval_dataset_names =  ['phee'] 
 for model_name, model_checkpoint in zip(model_names, model_checkpoints):
-  if model_checkpoint == 'microsoft/deberta-base':
-    tokenizer = DebertaTokenizerFast.from_pretrained(model_checkpoint, add_prefix_space=True)
-  else:
-    tokenizer = AutoTokenizer.from_pretrained(model_checkpoint)
-  # data_collator = DataCollatorForTokenClassification(tokenizer=tokenizer)
-
-  id2label = {0: 'O', 1: 'I-Treatment', 2: 'I-Test', 3: 'I-Problem', 4: 'I-Background', 5: 'I-Other'}
-
-
-  for i in range(1):
-
-    dataset = load_dataset('json', field='data', data_files={'train': f'data/processed/{dataset_name}/fold{i}/train.json', 'test': f'data/processed/{eval_dataset_name}/fold{i}/test.json'})
-    train_dataset = dataset['train']
-    test_dataset = dataset['test']
-
-    test_sentences = test_dataset['tokens']
-    test_word_ids = []
-    for sentence in test_sentences:
-        test_word_ids.append(tokenizer(sentence, truncation=True, is_split_into_words=True).word_ids())
-
-    train_dataset = train_dataset.rename_column('ner_tags', 'label_ids')
-    test_dataset = test_dataset.rename_column('ner_tags', 'label_ids')
-
-    train_dataset = train_dataset.map(tokenize, batched=True, batch_size=len(train_dataset))
-    test_dataset = test_dataset.map(tokenize, batched=True, batch_size=len(test_dataset))
-    
-    train_dataset.set_format('torch', columns=['input_ids', 'token_type_ids', 'attention_mask', 'label_ids'])
-    test_dataset.set_format('torch', columns=['input_ids', 'token_type_ids', 'attention_mask', 'label_ids'])
-
-    num_labels=6
-    # model = BertCRF.from_pretrained(model_checkpoint, num_labels=6, ignore_mismatched_sizes=True)
+  for eval_dataset_name in eval_dataset_names:
     if model_checkpoint == 'microsoft/deberta-base':
-      config = DebertaConfig.from_pretrained(model_checkpoint)
-      config.num_labels = num_labels
-      model = DebertaCRF.from_pretrained(model_checkpoint, config=config, ignore_mismatched_sizes=True)
+      tokenizer = DebertaTokenizerFast.from_pretrained(model_checkpoint, add_prefix_space=True)
     else:
-      config = BertConfig.from_pretrained(model_checkpoint)
-      config.num_labels = num_labels
-      model = BertCRF.from_pretrained(model_checkpoint, config=config, ignore_mismatched_sizes=True)
+      tokenizer = AutoTokenizer.from_pretrained(model_checkpoint)
+    # data_collator = DataCollatorForTokenClassification(tokenizer=tokenizer)
 
-    monitor = TrainingMonitor()
-    training_args = TrainingArguments(
-        output_dir=f"models/{model_name}/fold{i}",
-        overwrite_output_dir=True,
-        num_train_epochs=5,
-        per_device_train_batch_size=4,
-        per_device_eval_batch_size=4,
-        evaluation_strategy="epoch",
-        logging_strategy="epoch",
-        metric_for_best_model="f1",
-        save_strategy="epoch",
-        learning_rate=1e-5,
-        warmup_steps=200,
-        weight_decay=0.01,
-        load_best_model_at_end=True,
-    )
+    id2label = {0: 'O', 1: 'I-Treatment', 2: 'I-Test', 3: 'I-Problem', 4: 'I-Background', 5: 'I-Other'}
 
-    trainer = Trainer(
-        model=model,
-        args=training_args,
-        compute_metrics=monitor.compute_metrics_factory(test_word_ids, fold_no=i, eval_dataset_name=eval_dataset_name, model_name = model_name),
-        train_dataset=train_dataset,
-        eval_dataset=test_dataset
-    )
 
-    trainer.train()
+    for i in range(1, 5):
 
-    trainer.evaluate()
+      dataset = load_dataset('json', field='data', data_files={'train': f'data/processed/{dataset_name}/fold{i}/train.json', 'test': f'data/processed/{eval_dataset_name}/fold{i}/test.json'})
+      train_dataset = dataset['train']
+      test_dataset = dataset['test']
+
+      test_sentences = test_dataset['tokens']
+      test_word_ids = []
+      for sentence in test_sentences:
+          test_word_ids.append(tokenizer(sentence, truncation=True, is_split_into_words=True).word_ids())
+
+      train_dataset = train_dataset.rename_column('ner_tags', 'label_ids')
+      test_dataset = test_dataset.rename_column('ner_tags', 'label_ids')
+
+      train_dataset = train_dataset.map(tokenize, batched=True, batch_size=len(train_dataset))
+      test_dataset = test_dataset.map(tokenize, batched=True, batch_size=len(test_dataset))
+      
+      train_dataset.set_format('torch', columns=['input_ids', 'token_type_ids', 'attention_mask', 'label_ids'])
+      test_dataset.set_format('torch', columns=['input_ids', 'token_type_ids', 'attention_mask', 'label_ids'])
+
+      num_labels=6
+      # model = BertCRF.from_pretrained(model_checkpoint, num_labels=6, ignore_mismatched_sizes=True)
+      if model_checkpoint == 'microsoft/deberta-base':
+        config = DebertaConfig.from_pretrained(model_checkpoint)
+        config.num_labels = num_labels
+        model = DebertaCRF.from_pretrained(model_checkpoint, config=config, ignore_mismatched_sizes=True)
+      else:
+        config = BertConfig.from_pretrained(model_checkpoint)
+        config.num_labels = num_labels
+        model = BertCRF.from_pretrained(model_checkpoint, config=config, ignore_mismatched_sizes=True)
+
+      monitor = TrainingMonitor()
+      training_args = TrainingArguments(
+          output_dir=f"models/{model_name}/fold{i}",
+          overwrite_output_dir=True,
+          num_train_epochs=5,
+          per_device_train_batch_size=4,
+          per_device_eval_batch_size=4,
+          evaluation_strategy="epoch",
+          logging_strategy="epoch",
+          metric_for_best_model="f1",
+          save_strategy="epoch",
+          learning_rate=1e-5,
+          warmup_steps=200,
+          weight_decay=0.01,
+          load_best_model_at_end=True,
+      )
+
+      trainer = Trainer(
+          model=model,
+          args=training_args,
+          compute_metrics=monitor.compute_metrics_factory(test_word_ids, fold_no=i, eval_dataset_name=eval_dataset_name, model_name = model_name),
+          train_dataset=train_dataset,
+          eval_dataset=test_dataset
+      )
+
+      trainer.train()
+
+      trainer.evaluate()

@@ -3,7 +3,7 @@ import json
 import pandas as pd
 
 # Define the model names and dataset names
-model_names = ['scibert-ft', 'bluebert-ft', 'bertclinical-ft', 'bioclinicalbert-ft']
+model_names = ['scibert-ft', 'bluebert-ft', 'bertclinical-ft', 'bioclinicalbert-ft', 'deberta-ft']
 dataset_names = ['mtsamples2', 'doc-patient', 'phee']
 
 # Initialize an empty list to store the results
