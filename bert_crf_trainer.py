@@ -160,8 +160,8 @@ def tokenize(batch):
 
 # train_dataset, test_dataset = load_dataset('conll2003', split=['train', 'test'])
 
-model_names = ['scibert-ft', 'bertclinical-ft', 'bioclinicalbert-ft', 'deberta-ft']
-model_checkpoints = ['allenai/scibert_scivocab_uncased', 'samrawal/bert-base-uncased_clinical-ner' ,'emilyalsentzer/Bio_ClinicalBERT', 'microsoft/deberta-base']
+model_names =['biobert-ft'] #['scibert-ft', 'bertclinical-ft', 'bioclinicalbert-ft', 'deberta-ft']
+model_checkpoints = ['monologg/biobert_v1.1_pubmed'] #['allenai/scibert_scivocab_uncased', 'samrawal/bert-base-uncased_clinical-ner' ,'emilyalsentzer/Bio_ClinicalBERT', 'microsoft/deberta-base']
 dataset_name = 'phee'
 eval_dataset_names =  ['phee'] 
 for model_name, model_checkpoint in zip(model_names, model_checkpoints):
@@ -175,7 +175,7 @@ for model_name, model_checkpoint in zip(model_names, model_checkpoints):
     id2label = {0: 'O', 1: 'I-Treatment', 2: 'I-Test', 3: 'I-Problem', 4: 'I-Background', 5: 'I-Other'}
 
 
-    for i in range(1, 5):
+    for i in range(0, 5):
 
       dataset = load_dataset('json', field='data', data_files={'train': f'data/processed/{dataset_name}/fold{i}/train.json', 'test': f'data/processed/{eval_dataset_name}/fold{i}/test.json'})
       train_dataset = dataset['train']
